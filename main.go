@@ -3,8 +3,9 @@ package main
 import (
 	"fmt"
 	"log"
-	"messenger/routes"
 	"net/http"
+
+	"github.com/AlianZip/web-messenger/routes"
 )
 
 func main() {
