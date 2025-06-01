@@ -9,12 +9,16 @@ import (
 func NewRouter() *mux.Router {
 	r := mux.NewRouter()
 
-	//auth
-	r.HandleFunc("/register", handlers.RegisterHandler).Methods("POST")
-	r.HandleFunc("/login", handlers.LoginHandler).Methods("POST")
-	r.HandleFunc("/delete-account", handlers.DeleteAccountHandler).Methods("POST")
+	//home
+	r.HandleFunc("/", handlers.HomeHandler).Methods("GET")
+
+	//auth && delete account
+	r.HandleFunc("/register", handlers.RegisterHandler).Methods("POST", "GET")
+	r.HandleFunc("/login", handlers.LoginHandler).Methods("POST", "GET")
+	r.HandleFunc("/delete-account", handlers.DeleteAccountHandler).Methods("POST", "GET")
 
 	//chat
+	r.HandleFunc("/chats", handlers.ChatsHandler).Methods("POST", "GET")
 
 	return r
 }
