@@ -36,7 +36,7 @@ Ctrl+Enter Inc. is a lightweight web-based messaging application built using Go 
 2. Install dependencies:
 
    ```bash
-   go get github.com/gorilla/mux
+   go mod tidy
    ```
 
 3. Run the server:
