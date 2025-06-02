@@ -3,7 +3,11 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"text/template"
 )
+
+var login_tmpl = template.Must(template.ParseFiles("templates/login.html"))
+var register_tmpl = template.Must(template.ParseFiles("templates/register.html"))
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {

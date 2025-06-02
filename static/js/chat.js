@@ -5,22 +5,25 @@ document.addEventListener("DOMContentLoaded", function () {
     const messageInput = document.getElementById("messageInput");
     const globalSearchInput = document.getElementById("globalSearchInput");
     const chatSearchInput = document.getElementById("chatSearchInput");
+    const toggleButton = document.getElementById("themeToggle");
+    const savedTheme = localStorage.getItem("theme") || "light";
+    const body = document.body;
 
     let currentChatId = null;
 
     //theme
-    const toggleButton = document.getElementById("themeToggle");
-    const body = document.body;
+    body.setAttribute("data-bs-theme", savedTheme);
+    toggleButton.textContent = savedTheme === "dark" ? "☀️" : "🌙";
 
     toggleButton.addEventListener("click", function () {
-        if (body.getAttribute("data-bs-theme") === "dark") {
-            body.setAttribute("data-bs-theme", "light");
-            toggleButton.textContent = "🌙";
-        } else {
-            body.setAttribute("data-bs-theme", "dark");
-            toggleButton.textContent = "☀️";
-        }
+        const currentTheme = body.getAttribute("data-bs-theme");
+        const newTheme = currentTheme === "dark" ? "light" : "dark";
+        body.setAttribute("data-bs-theme", newTheme);
+        localStorage.setItem("theme", newTheme);
+        toggleButton.textContent = newTheme === "dark" ? "☀️" : "🌙";
     });
+
+
 
     //api: get chats
     async function fetchChats() {
