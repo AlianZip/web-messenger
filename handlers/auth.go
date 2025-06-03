@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -18,20 +19,37 @@ var validate = validator.New()
 
 // parse from request to type User from github.com/AlianZip/web-messenger/models(user.go)
 func parseForm(r *http.Request, user *models.User) error {
-	if err := r.ParseForm(); err != nil {
-		return fmt.Errorf("failed to parse form: %v", err)
+	if r.Header.Get("Content-Type") != "application/json" {
+		return fmt.Errorf("invalid content-type, expected application/json")
 	}
 
-	username := r.FormValue("username")
-	email := r.FormValue("email")
-	password := r.FormValue("password")
+	defer r.Body.Close()
+	decoder := json.NewDecoder(r.Body)
 
-	if username == "" || email == "" || password == "" {
-		return fmt.Errorf("missing required fields")
+	var data map[string]string
+	if err := decoder.Decode(&data); err != nil {
+		return fmt.Errorf("failed to decode JSON: %v", err)
+	}
+
+	// check field exists
+	username, ok := data["username"]
+	if !ok || username == "" {
+		return fmt.Errorf("missing username")
+	}
+
+	email, ok := data["email"]
+	if !ok || email == "" {
+		return fmt.Errorf("missing email")
+	}
+
+	password, ok := data["password"]
+	if !ok || password == "" {
+		return fmt.Errorf("missing password")
 	}
 
 	user.Username = username
 	user.Email = email
+	user.Password = password
 
 	return nil
 }
@@ -79,36 +97,47 @@ func AuthMiddleware(next http.Handler) http.Handler {
 // register new user
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
+
 		var user models.User
 		err := parseForm(r, &user)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			fmt.Println(err)
+			w.Header().Set("Content-Type", "application/json")
+			fmt.Fprintf(w, `{"success": false, "message": "Bad request"}`)
 			return
 		}
 
 		// check valid
 		if err := validate.Struct(user); err != nil {
-			http.Error(w, fmt.Sprintf("Validation failed: %v", err), http.StatusBadRequest)
+			fmt.Println(err)
+			w.Header().Set("Content-Type", "application/json")
+			fmt.Fprintf(w, `{"success": false, "message": "Invalid structure"}`)
 			return
 		}
 
 		// check user existence
 		existingUser, _ := database.GetUserByUsername(user.Username)
 		if existingUser.ID != 0 {
-			http.Error(w, "Username already exists", http.StatusBadRequest)
+			fmt.Println(err)
+			w.Header().Set("Content-Type", "application/json")
+			fmt.Fprintf(w, `{"success": false, "message": "User existence"}`)
 			return
 		}
 
 		existingEmail, _ := database.GetUserByEmail(user.Email)
 		if existingEmail.ID != 0 {
-			http.Error(w, "Email already exists", http.StatusBadRequest)
+			fmt.Println(err)
+			w.Header().Set("Content-Type", "application/json")
+			fmt.Fprintf(w, `{"success": false, "message": "User existence"}`)
 			return
 		}
 
 		// hash password
-		hash, err := utils.HashPassword(r.FormValue("password"))
+		hash, err := utils.HashPassword(user.Password)
 		if err != nil {
-			http.Error(w, "Failed to hash password", http.StatusInternalServerError)
+			fmt.Println(err)
+			w.Header().Set("Content-Type", "application/json")
+			fmt.Fprintf(w, `{"success": false, "message": "Invalid hashing"}`)
 			return
 		}
 
@@ -116,12 +145,15 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		user.Hash = hash
 		user.Timestamp = time.Now().Unix()
 		if err := database.CreateUser(&user); err != nil {
-			http.Error(w, "Failed to create user", http.StatusInternalServerError)
+			fmt.Println(err)
+			w.Header().Set("Content-Type", "application/json")
+			fmt.Fprintf(w, `{"success": false, "message": "Invalid add user"}`)
 			return
 		}
 
 		// go to login
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintf(w, `{"success": true, "redirect": "/login"}`)
 		return
 	}
 
@@ -156,7 +188,8 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		utils.SetSessionCookie(w, sessionID, 86400*7) // 7 days
 
 		// go to chats
-		http.Redirect(w, r, "/chats", http.StatusSeeOther)
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintf(w, `{"success": true, "redirect": "/chats"}`)
 		return
 	}
 

@@ -6,6 +6,7 @@ type User struct {
 	Email     string `json:"email" validate:"required,email"`
 	Hash      string `json:"-"`
 	Timestamp int64  `json:"-"`
+	Password  string `json:"-"`
 }
 
 type Session struct {

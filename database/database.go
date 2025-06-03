@@ -16,7 +16,7 @@ var DB *sql.DB
 
 func InitDB() {
 	var err error
-	DB, err = sql.Open("sqlite3", "./messenger.db")
+	DB, err = sql.Open("sqlite3", "./database/storage/users.db")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -30,7 +30,7 @@ func InitDB() {
             email TEXT NOT NULL UNIQUE,
             hash TEXT NOT NULL,
 			timestamp INT NOT NULL,
-			sessionID TEXT NOT NULL
+			premission INT NOT NULL
         )
     `)
 	if err != nil {
@@ -56,11 +56,12 @@ func InitDB() {
 // addd new user
 func CreateUser(user *models.User) error {
 	_, err := DB.Exec(
-		"INSERT INTO users (username, email, hash, timestamp) VALUES (?, ?, ?, ?)",
+		"INSERT INTO users (username, email, hash, timestamp, premission) VALUES (?, ?, ?, ?, ?)",
 		user.Username,
 		user.Email,
 		user.Hash,
 		time.Now().Unix(),
+		0,
 	)
 	return err
 }
