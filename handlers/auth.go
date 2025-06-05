@@ -4,13 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/AlianZip/web-messenger/database"
 	"github.com/AlianZip/web-messenger/models"
 	"github.com/AlianZip/web-messenger/utils"
-	"golang.org/x/crypto/bcrypt"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -37,18 +35,12 @@ func parseForm(r *http.Request, user *models.User) error {
 		return fmt.Errorf("missing username")
 	}
 
-	email, ok := data["email"]
-	if !ok || email == "" {
-		return fmt.Errorf("missing email")
-	}
-
 	password, ok := data["password"]
 	if !ok || password == "" {
 		return fmt.Errorf("missing password")
 	}
 
 	user.Username = username
-	user.Email = email
 	user.Password = password
 
 	return nil
@@ -57,25 +49,7 @@ func parseForm(r *http.Request, user *models.User) error {
 // secure routes
 func AuthMiddleware(next http.Handler) http.Handler {
 	middlewareFunc := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		userIdStr := utils.GetCookie(r, "user_id")
 		sessionID := utils.GetSessionCookie(r)
-
-		if userIdStr == "" {
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-			return
-		}
-
-		userId, err := strconv.ParseInt(userIdStr, 10, 64)
-		if err != nil {
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-			return
-		}
-
-		user, _ := database.GetUserByID(userId)
-		if user.ID == 0 {
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-			return
-		}
 
 		if sessionID == "" {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
@@ -116,24 +90,16 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// check user existence
-		existingUser, _ := database.GetUserByUsername(user.Username)
+		existingUser, err := database.GetUserByUsername(user.Username)
 		if existingUser.ID != 0 {
 			fmt.Println(err)
 			w.Header().Set("Content-Type", "application/json")
-			fmt.Fprintf(w, `{"success": false, "message": "User existence"}`)
-			return
-		}
-
-		existingEmail, _ := database.GetUserByEmail(user.Email)
-		if existingEmail.ID != 0 {
-			fmt.Println(err)
-			w.Header().Set("Content-Type", "application/json")
-			fmt.Fprintf(w, `{"success": false, "message": "User existence"}`)
+			fmt.Fprintf(w, `{"success": false, "message": "User exists"}`)
 			return
 		}
 
 		// hash password
-		hash, err := utils.HashPassword(user.Password)
+		hash := utils.HashPassword(user.Password)
 		if err != nil {
 			fmt.Println(err)
 			w.Header().Set("Content-Type", "application/json")
@@ -163,18 +129,31 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 // login
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
-		username := r.FormValue("username")
-		password := r.FormValue("password")
 
-		user, err := database.GetUserByUsername(username)
-		if err != nil || user.ID == 0 {
-			http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+		var user models.User
+		err := parseForm(r, &user)
+		if err != nil {
+			fmt.Println(err)
+			w.Header().Set("Content-Type", "application/json")
+			fmt.Fprintf(w, `{"success": false, "message": "Bad request"}`)
+			return
+		}
+
+		// check user existence
+		existingUser, _ := database.GetUserByUsername(user.Username)
+		if existingUser.ID == 0 {
+			w.Header().Set("Content-Type", "application/json")
+			fmt.Fprintf(w, `{"success": false, "message": "User not exist"}`)
 			return
 		}
 
 		//check password
-		if err := bcrypt.CompareHashAndPassword([]byte(user.Hash), []byte(password)); err != nil {
-			http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+		fmt.Printf("%v \n", user.Password)
+		hash := utils.HashPassword(user.Password)
+		if hash != existingUser.Hash {
+			fmt.Printf("%v : %v\n", hash, existingUser.Hash)
+			w.Header().Set("Content-Type", "application/json")
+			fmt.Fprintf(w, `{"success": false, "message": "Invalid pasword"}`)
 			return
 		}
 
@@ -185,8 +164,9 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		fmt.Printf("set session cookie")
 		utils.SetSessionCookie(w, sessionID, 86400*7) // 7 days
-
+		fmt.Println(" succses")
 		// go to chats
 		w.Header().Set("Content-Type", "application/json")
 		fmt.Fprintf(w, `{"success": true, "redirect": "/chats"}`)

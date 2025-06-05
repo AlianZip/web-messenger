@@ -8,7 +8,7 @@ import (
 
 // generate new seesionid of 32 chars
 func GenerateSessionID() (string, error) {
-	b := make([]byte, 24) // 24 байта = 32 символа в base64
+	b := make([]byte, 24)
 	_, err := rand.Read(b)
 	if err != nil {
 		return "", err
@@ -18,15 +18,7 @@ func GenerateSessionID() (string, error) {
 
 // set cookie with sessionid
 func SetSessionCookie(w http.ResponseWriter, sessionID string, maxAge int) {
-	http.SetCookie(w, &http.Cookie{
-		Name:     "session_id",
-		Value:    sessionID,
-		MaxAge:   maxAge,
-		Path:     "/",
-		HttpOnly: true,
-		Secure:   false, //only for localhost
-		SameSite: http.SameSiteStrictMode,
-	})
+	SetCookie(w, "session_id", sessionID, maxAge)
 }
 
 // read session from coolie

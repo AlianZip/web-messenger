@@ -41,3 +41,16 @@ body[data-bs-topic="dark"] .text-muted {
     background-color: #e9ecef;
     margin-right: auto;
 }
+
+
+#profileModal .modal-content {
+    border-radius: 10px;
+}
+
+#profileModal img {
+    object-fit: cover;
+}
+
+#profileModal .btn-primary {
+    margin-top: 1rem;
+}

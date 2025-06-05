@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
     const toggleButton = document.getElementById("themeToggle");
     const form = document.getElementById("loginForm");
-    const nameInput = document.getElementById("username");
+    const usernameInput = document.getElementById("username");
     const passwordInput = document.getElementById("password");
     const body = document.body;
     const savedTheme = localStorage.getItem("theme") || "light";
@@ -44,10 +44,59 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
 
-    form.addEventListener("submit", function (e) {
-        e.defaultPrevented();
+    form.addEventListener("submit", async function (e) {
+        e.preventDefault();
         
         clearErrors();
+
+        const userData = {
+            username: usernameInput.value.trim(),
+            password: passwordInput.value.trim(),
+        };
+
+
+        try {
+            const response = await fetch("/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(userData)
+            });
+
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            };
+
+
+            try {
+                result = await response.json();
+            } catch (e) {
+                console.log("Ошибка парсинга JSON:", e);
+                console.log(response);
+                alert("Ошибка: сервер вернул некорректный ответ");
+                return false;
+            };
+
+
+            if (!result.success) {
+                console.log(result);
+                if (result.field) {
+                    showFailedError(result.field, result.message);
+                } else {
+                    alert(result.message || "Ошибка входа");
+                };
+                return false;
+            };
+
+            window.location.href = result.redirect;
+        } catch (error) {
+            console.log("Ошибка сети:", error);
+            alert("Не удалось подключиться к серверу");
+            return false
+        }
+
 
         
     });

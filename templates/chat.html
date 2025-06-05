@@ -20,11 +20,8 @@
             <div class="container-fluid">
                 <a class="navbar-brand fw-bold" href="/">Ctrl+Enter Inc.</a>
                 <div class="d-flex align-items-center gap-2">
-                    <input type="text" id="globalSearchInput" class="form-control form-control-sm me-2" placeholder="Search chats...">
+                    <input type="text" id="chatSearchInput" class="form-control form-control-sm me-2" placeholder="Поиск по чату...">
                     <button id="themeToggle" class="btn btn-outline-secondary btn-sm">🌙</button>
-                    <a href="/profile" class="btn btn-link text-decoration-none">
-                        <i class="bi bi-person-circle fs-5"></i>
-                    </a>
                 </div>
             </div>
         </nav>
@@ -34,7 +31,7 @@
             <div class="col-md-4 col-lg-3 border-end h-100 overflow-auto">
                 <div class="p-3">
                     <h5>Чаты</h5>
-                    <input type="text" id="chatSearchInput" class="form-control mb-3" placeholder="Search in chat...">
+                    <input type="text" id="globalSearchInput" class="form-control mb-3" placeholder="Поиск чатов...">
                     <ul class="list-group" id="chatList">
 
                     </ul>
@@ -49,7 +46,7 @@
     
                 <div class="border-top p-3">
                     <form id="messageForm" class="d-flex gap-2">
-                        <textarea id="messageInput" class="form-control" rows="1" placeholder="Type your message..." required></textarea>
+                        <textarea id="messageInput" class="form-control" rows="1" placeholder="Введите сообщение..." required></textarea>
                         <button type="submit" class="btn btn-primary">></button>
                     </form>
                 </div>
@@ -73,6 +70,26 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
                     <button type="button" id="saveEditButton" class="btn btn-primary">Сохранить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="profileModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Профиль</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex flex-column align-items-center">
+                        <img src="..." alt="Аватар" class="rounded-circle img-fluid mb-3" style="width: 100px; height: 100px;">
+                        <h4 id="profileUsername" class="mb-2"></h4>
+                        <p id="profileEmail" class="text-muted mb-4"></p>
+                        <button id="sendMessageButton" class="btn btn-primary w-100 d-none">Написать</button>
+                    </div>
                 </div>
             </div>
         </div>

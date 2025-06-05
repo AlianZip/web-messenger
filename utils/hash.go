@@ -1,13 +1,11 @@
 package utils
 
 import (
-	"golang.org/x/crypto/bcrypt"
+	"crypto/sha256"
+	"encoding/hex"
 )
 
-func HashPassword(password string) (string, error) {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return "", err
-	}
-	return string(hashedPassword), nil
+func HashPassword(password string) string {
+	hash := sha256.Sum256([]byte(password))
+	return hex.EncodeToString(hash[:])
 }

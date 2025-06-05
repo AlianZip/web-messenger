@@ -19,9 +19,13 @@ func NewRouter() *mux.Router {
 	// r.HandleFunc("/delete-account", handlers.DeleteAccountHandler).Methods("POST")
 
 	//chat
-	protected := r.PathPrefix("/chats").Subrouter()
-	protected.Use(handlers.AuthMiddleware)
-	protected.HandleFunc("/", handlers.ChatsHandler).Methods("POST", "GET")
+	protectedChat := r.PathPrefix("/chats").Subrouter()
+	protectedChat.Use(handlers.AuthMiddleware)
+	protectedChat.HandleFunc("", handlers.ChatsHandler).Methods("POST", "GET")
+
+	//api
+	protectedAPI := r.PathPrefix("/api").Subrouter()
+	protectedAPI.Use(handlers.AuthMiddleware)
 
 	return r
 }

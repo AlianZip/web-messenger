@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const confirmPasswordInput = document.getElementById("confirmPassword");
     const passwordError = document.getElementById("passwordError");
     const toggleButton = document.getElementById("themeToggle");
+    const usernameInput = document.getElementById("username");
     const body = document.body;
     const savedTheme = localStorage.getItem("theme") || "light";
     
@@ -69,9 +70,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
         //for json
         const userData = {
-            email: document.getElementById("email").value.trim(),
-            username: document.getElementById("username").value.trim(),
-            password: passwordInput.value,
+            username: usernameInput.value.trim(),
+            password: passwordInput.value.trim(),
         };
 
         try {
