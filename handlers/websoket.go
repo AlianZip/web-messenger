@@ -136,7 +136,6 @@ func (c *Client) ReadPump(userID int64, chatID string) {
 			break
 		}
 
-		// Сохраняем сообщение в БД
 		message := models.Message{
 			ChatID:    utils.StringToInt64(chatID),
 			UserID:    userID,
@@ -150,7 +149,6 @@ func (c *Client) ReadPump(userID int64, chatID string) {
 			continue
 		}
 
-		// Рассылаем всем в этом чате
 		room := GetChatRoom(chatID)
 		room.Broadcast <- msg
 	}
